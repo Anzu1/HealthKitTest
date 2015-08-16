@@ -11,6 +11,7 @@ import HealthKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var weightTextField: UITextField!
     @IBOutlet weak var biologicalSexLabel: UILabel!
     @IBOutlet weak var heightLabel: UILabel!
     let healthStore: HKHealthStore? = {
@@ -54,10 +55,23 @@ class ViewController: UIViewController {
             healthStore?.executeQuery(heightSampleQuery)
         }
     }
+    @IBAction func save(sender: AnyObject) {
+        //probka typu weight za object ponizej
+        let weight = (weightTextField.text as NSString).doubleValue
+        let bodyMassSample = HKQuantitySample(type: HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass), quantity: HKQuantity(unit: HKUnit(fromString: "kg"), doubleValue: weight), startDate: NSDate(), endDate: NSDate())
+        healthStore?.saveObject(bodyMassSample, withCompletion: { (success, error) -> Void in
+            if success {
+                println("success")
+            }
+            else {
+                println(error.description)
+            }
+        })
+    }
     
     func requestAccessToHealthData() {
-        let dataTypesToWrite = NSSet()
-        let dataTypesToRead = NSSet(objects: HKCharacteristicType.characteristicTypeForIdentifier(HKCharacteristicTypeIdentifierBiologicalSex), HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeight))
+        let dataTypesToWrite = NSSet(objects: HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass))
+        let dataTypesToRead = NSSet(objects: HKCharacteristicType.characteristicTypeForIdentifier(HKCharacteristicTypeIdentifierBiologicalSex), HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeight), HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass))
         
         if healthStore != nil {
             healthStore!.requestAuthorizationToShareTypes(dataTypesToWrite as Set<NSObject>, readTypes: dataTypesToRead as Set<NSObject>) {
